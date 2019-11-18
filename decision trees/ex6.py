@@ -391,7 +391,6 @@ if __name__ == "__main__":
 
     t1 = build_tree(dataset)
 
-    dataset2 = dataset[:]
     for row in dataset:
         row[column_ind] = 0.0
 
