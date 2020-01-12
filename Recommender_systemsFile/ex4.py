@@ -2715,14 +2715,15 @@ def separate_dicts(percent):
     #     test_slusanost[i] = slusanost.pop(
     #         i)  # Ke go polnat so prvite percent ova, a drugoto ke go ostam vo slusanost
 
-    return test_slusanost, train_slusanost
+    return test_slusanost, train_slusanost            # Obratno mi se klaeni zato taka prvite 30 treba
+
 
 def evaluate(relevant, retrieved):
     relevant_len = len(relevant)
     retrieved_len = len(retrieved)
     intersection = len(relevant.intersection(retrieved))
 
-    if retrieved_len == 0: # Прецизноста и одзивот, за секој елемент посебно, се пресметува со следните формули (доколку нема препорачани изведувачи, прецизноста е 0):
+    if retrieved_len == 0:  # Прецизноста и одзивот, за секој елемент посебно, се пресметува со следните формули (доколку нема препорачани изведувачи, прецизноста е 0):
         preciznost = 0
     else:
         preciznost = intersection / retrieved_len
@@ -2732,19 +2733,16 @@ def evaluate(relevant, retrieved):
     return preciznost, odziv
 
 
-
-
 if __name__ == '__main__':
     percent = int(input())
-    test_slusanost, slusanost = separate_dicts(percent)
+    slusanost, test_slusanost = separate_dicts(percent)
 
     preciznost = []
     odziv = []
     for korisnik, rechnik in test_slusanost.items():
 
         if len(rechnik) == 0:
-            continue # OVA GO PRAM OTI VO TRAIN MNOZESTVOTO 112 IMA PRASNO DICT I VO EVALUATE VADI GRESHHKA!
-
+            continue  # OVA GO PRAM OTI VO TRAIN MNOZESTVOTO 112 IMA PRASNO DICT I VO EVALUATE VADI GRESHHKA!
 
         # relevant koj se; prvite 10 so najgolema vrednost
         relevants = sorted(rechnik.items(), key=lambda x: x[1], reverse=True)[:10]  # Za ova ke dobieme neshto
@@ -2764,15 +2762,13 @@ if __name__ == '__main__':
         retrieved = [row[1] for row in retrieveds]
         relevant = [row[0] for row in relevants]
 
-
         p, o = evaluate(set(relevant), set(retrieved))
         preciznost.append(p)
         odziv.append(o)
 
     # Прецизноста и одзивот за целиот систем се добиваат како просечни вредности на прецизноста и одзивот за секој елемент.
-    print(f'Preciznost: {sum(preciznost)/len(preciznost)}')
-    print(f'Odziv: {sum(odziv)/len(odziv)}')
-
+    print(f'Preciznost: {sum(preciznost) / len(preciznost)}')
+    print(f'Odziv: {sum(odziv) / len(odziv)}')
 
 # Во речникот slusanost се чуваат информации за тоа кој корисник колку пати има слушано песни од даден музички
 # изведувач. Во речникот корисниците и артистите се претставени преку нивната единствена шифра (ID). На пример "{3: {
