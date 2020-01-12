@@ -2762,7 +2762,7 @@ if __name__ == '__main__':
         del slusanost[korisnik]
 
         retrieved = [row[1] for row in retrieveds]
-        relevant = [row[1] for row in relevants]
+        relevant = [row[0] for row in relevants]
 
 
         p, o = evaluate(set(relevant), set(retrieved))
