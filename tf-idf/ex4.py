@@ -692,12 +692,12 @@ if __name__ == '__main__':
     for i in sentences:
         pom = []
         recenica = documents[i]
-        tf_idf_recenica = process_document(recenica, df, N, vocab)
+        tf_idf_recenica = process_document(ywrecenica, df, N, vocab)
         for j in range(len(vocab)):
             if tf_idf_recenica[j] > threshold:
                 pom.append((vocab[j], tf_idf_recenica[j]))
         if len(pom) == 0:
-            print(f'{i} -> No keywords ...')
+            print(f'{i} -> No keords ...')
             continue # ili mozi so else da se izigra za da ne printa prazno primer 40 -> 
         sorted_list = sorted(pom, key=lambda x: x[1], reverse=True)#[:5]
         str_print = ''

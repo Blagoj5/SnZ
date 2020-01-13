@@ -2710,10 +2710,6 @@ def separate_dicts(percent):
 
     test_slusanost = dict(list(slusanost.items())[:split])
     train_slusanost = dict(list(slusanost.items())[split:])
-    # for i in range(2, split): # Ima shansa da bidi greshno oti na krajot ke bidi od 2 do tamu.. mozebi treba na split+2 za da gi zemite tochnite procenti
-    #     if i in slusanost
-    #     test_slusanost[i] = slusanost.pop(
-    #         i)  # Ke go polnat so prvite percent ova, a drugoto ke go ostam vo slusanost
 
     return test_slusanost, train_slusanost            # Obratno mi se klaeni zato taka prvite 30 treba
 

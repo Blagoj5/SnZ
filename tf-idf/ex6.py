@@ -2,7 +2,7 @@ import math
 import re
 
 
-def get_words2(doc):
+def get_words(doc):
     """Поделба на документот на зборови. Стрингот се дели на зборови според
     празните места и интерпукциските знаци
 
@@ -15,7 +15,7 @@ def get_words2(doc):
     # па потоа стави ги во резултатот ако нивната должина е >2 и <20
     words = list()
     for word in re.split('\\W+', doc):
-        if 2 < len(word) < 20 and word:
+        if 2 < len(word) < 20:
             words.append(word.lower())
     return words
 
@@ -87,7 +87,7 @@ def pearson(v1, v2):
     return r
 
 
-def calculate_document_frecalculate_document_frequenciesquencies(documents):
+def calculate_document_frequencies(documents):
     """Враќа речник со број на појавување на зборовите.
 
     :param documents: листа со документи
@@ -98,7 +98,7 @@ def calculate_document_frecalculate_document_frequenciesquencies(documents):
     df = {}
     documents_words = []
     for doc_text in documents:
-        words = get_words2(doc_text) # <----------------- OVDE TREBA DA SE DODADI PRVICNATA funkc. za get_words(za da go najdish prvicniot VOCAB vo mainot odnosno (IME NA ZBOR, kOLKU PATI) )
+        words = get_words(doc_text)
         documents_words.append(words)
         words_set = set(words)
         for word in words_set:
@@ -206,7 +206,7 @@ def create_dataset(documents, labels):
     return dataset, df, N, vocab
 
 
-train_data = [
+data = [
     ("""What Are We Searching for on Mars?
 Martians terrified me growing up. I remember watching the 1996 movie Mars Attacks! and fearing that the Red Planet harbored hostile alien neighbors. Though I was only 6 at the time, I was convinced life on Mars meant little green men wielding vaporizer guns. There was a time, not so long ago, when such an assumption about Mars wouldn’t have seemed so far-fetched.
 Like a child watching a scary movie, people freaked out after listening to “The War of the Worlds,” the now-infamous 1938 radio drama that many listeners believed was a real report about an invading Martian army. Before humans left Earth, humanity’s sense of what—or who—might be in our galactic neighborhood was, by today’s standards, remarkably optimistic.
@@ -272,57 +272,80 @@ Jordan came off the bench Sunday and tied a career high by scoring 24 points to 
      , "sport")
 ]
 
-def get_words(doc):
-    """Поделба на документот на зборови. Стрингот се дели на зборови според
-    празните места и интерпукциските знаци
 
-    :param doc: документ
-    :type doc: str
-    :return: множество со зборовите кои се појавуваат во дадениот документ
-    :rtype: set(str)
-    """
-    # подели го документот на зборови и конвертирај ги во мали букви
-    # па потоа стави ги во резултатот ако нивната должина е >2 и <20
-    words = list()
-    for word in re.split('\\W+', doc):
-        if 2 < len(word) < 20 and word.lower() not in vocab_to_ignore:   # <---------------------------------- OVDE dodadeno 
-            words.append(word.lower())
-    return words
+def my_recommendation(documents, df, N, vocab):
+    final = []
+    for i, doc in enumerate(documents):
+        kluchni_zborovi = []
+        doc_vector = process_document(doc, df, N, vocab)
+        for j in range(len(vocab)):
+            if doc_vector[j] > 0:
+                # Ova e kluchniot zbor, a ne ne interesira vektorot za istiot zatoa go zemam samo vocab[j], a ne i doc_vector[j]
+                kluchni_zborovi.append(vocab[j])
 
-def short_vocab(vocab):
-    vocab = sorted(vocab.items(), key= lambda x: x[0]) #alfabetski
-    vocab = sorted(vocab,key= lambda x: x[1], reverse=True) #spored broj na pojavuvanja
-    vocab = vocab[:100] # prvite 100[(ime na zbor, kolku pati), ...]
-    vocab = [v[0] for v in vocab] # za da vrati samo  iminja na zborovite shto treba da se ignorirat(normalno sortirani)
-    return vocab
+        # klavam index i kluchnite_zborovi za taa lista, megjutoa go transformiram vo set so cel da se izbrishat duplikati ako ima
+        final.append((i, set(kluchni_zborovi)))
+
+    return final
+
+def calculate_sim(keywords, keywords_from_all_documents):
+    '''
+    keywords is a list from the test_case keywords
+    keywords_from_all_documents list(int, set of all keywords in that document) list of tuples for index and keywords for that document
+    '''
+
+    sim = []
+    for docs in keywords_from_all_documents:
+        same_keywords = 0
+        words_in_common = []
+        for keyword in docs[1]:
+            if keyword in keywords:
+                same_keywords += 1
+                words_in_common.append(keyword)
+
+        sim.append((docs[0], same_keywords, words_in_common)) # ova  vraka brojot na documentot kako i kolku ima isti kluchni zborovi
+
+    top_four = sorted(sim, key=lambda x: x[1], reverse=True)[:4] # gi zemam top chetiri spored kolku imat isti keywords ex. [(2, 10), (5, 8) etc ..]
+
+    return top_four
+
 
 
 if __name__ == '__main__':
-    text = input()
+    test_doc = input()
 
-    documents = [data[0] for data in train_data]
+    documents = [row[0] for row in data]
+    df = calculate_document_frequencies(documents)
+    N = len(data)
+    vocab = get_vocabulary(documents)
 
-    df = calculate_document_frequencies(documents)  # vo ova funkcija koristime get_words2 (prvicnata funkcija na get_words)
+    final = my_recommendation(documents, df, N, vocab)
 
-    vocab_to_ignore = short_vocab(df)
-    documents_cosin = rank_documents(text, documents)
-    documents_pears = rank_documents(text, documents, sim_func=pearson) # vo ovie dve rank documents funkc se zema modificiranata get_words i tamu e poznata
-                                                                        #  promenlivata vocab_to_ignore bidejki ja ima vo mainot!!
+    keywords = []
+    test_document = process_document(test_doc, df, N, vocab)
+    for i in range(len(vocab)):
+        if test_document[i] > 0:
+            keywords.append(vocab[i])
 
-    for i in range(0, 5):
-        print(f'Rang po slichnost:{i} Cosine-Document #{documents_cosin[i][1]} Pearson-Document #{documents_pears[i][1]}')
+    top_recommends = calculate_sim(keywords, final)
+
+    for row in top_recommends:
+
+        sorted_keywords = sorted(row[2])
+        string = ''
+        for r in sorted_keywords:
+            string += f'{r}, '
+
+        print(f'Dokument: #{row[0]}: {string[:-2]}')
 
 
-
-# Да се најдат петте најслични текстови од тренинг множеството со текстот даден на влез со користење на tf-idf.
-# Притоа, за наоѓање на сличност да се користи Пирсонова корелација и косинусно растојание. Потребно е да се најдат
-# наслични документи според намален вокабулар. Намалениот вокабулар се добива со отстранување на 100те зборови што се
-# појавуваат најчесто во множеството.
+# Дадено е податочно множество на документи од спорт (спорт) и наука (science). Потребно е да се најдат најсличните 4
+# документи на документ кој се чита од стандарден влез (test_doc). Сличноста на документите се одредува според клучни
+# зборови пронајдени со методот tf-idf, односно сличноста се однесува на бројот на заеднички клучни зборови. Колку е
+# поголем бројот на заеднички клучни зборови, толку тој документ е посличен со моменталниот документ.
 #
-# Помош: целосниот вокабулар може да го добиете со моменталната имплементација на функцијата get_words,
-# додека за добивање на намалениот вокабулар потребна е функција со која ќе се игнорираат претходно пресметаните 100
-# најпојавувани зборови. Зборовите потребно е да бидат сортирани алфабетски, по што треба да се сортираат според
-# бројот на појавувања.
-#
-# Излезот треба да има 5 линии со по 2 броеви - првиот е индексот на сличниот текст со Пирсонова корелација,
-# а вториот е индексот на сличниот текст со косинусно растојание.
+# Секој од документите треба да се престави со tf-idf вектор, од кој треба да се извлечат зборовите со tf-idf
+# вредност поголема од 0 како клучни зборови. За документот кој се чита од стандарден влез потребно е да се извлечат
+# клучните зборови и да се спореди со документите од податочното множество (да се најде бројот на заеднички клучни
+# зборови). На стандарден излез испечатете ги индексите на 4те најслични документи од множеството за тренирање,
+# како и заедничните клучни зборови (сортирани алфабетски).
