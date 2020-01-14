@@ -334,9 +334,9 @@ if __name__ == '__main__':
         sorted_keywords = sorted(row[2])
         string = ''
         for r in sorted_keywords:
-            string += f'{r}, '
+            string += f'{r} '
 
-        print(f'Dokument: #{row[0]}: {string[:-2]}')
+        print(f'Dokument #{row[0]}: {string[:-1]}')
 
 
 # Дадено е податочно множество на документи од спорт (спорт) и наука (science). Потребно е да се најдат најсличните 4

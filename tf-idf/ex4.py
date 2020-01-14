@@ -692,7 +692,7 @@ if __name__ == '__main__':
     for i in sentences:
         pom = []
         recenica = documents[i]
-        tf_idf_recenica = process_document(ywrecenica, df, N, vocab)
+        tf_idf_recenica = process_document(recenica, df, N, vocab)
         for j in range(len(vocab)):
             if tf_idf_recenica[j] > threshold:
                 pom.append((vocab[j], tf_idf_recenica[j]))
